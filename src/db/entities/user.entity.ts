@@ -24,4 +24,7 @@ export class User{
 	@Column({type: 'bool', default: true})
 	isActive: boolean;
 
+	@Column({type: 'varchar', length: 64})
+	hashSalt: string
+
 }
