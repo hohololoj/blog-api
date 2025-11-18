@@ -46,4 +46,12 @@ export class UsersService{
 			return {status: false, message: 'Что-то пошло не так'}}
 		)
 	}
+
+	async findByEmailOrLogin(identifier: string){
+		return this.userRepository.findOne({where: [
+			{email: identifier},
+			{username: identifier}
+		]})
+	}
+
 }
