@@ -54,4 +54,8 @@ export class UsersService{
 		]})
 	}
 
+	async findById(id: number){
+		return this.userRepository.find({where: {id}})
+	}
+
 }
