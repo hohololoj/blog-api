@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "../users/users.service";
 import { CryptoService } from "../crypto/crypto.service";
+import { Payload } from "../../types/types.payload";
 
 @Injectable()
 export class AuthService{
@@ -11,7 +12,7 @@ export class AuthService{
 		private readonly cryptoService: CryptoService
 	){}
 
-	throwWrongAuth(){
+	throwWrongAuth(): never{
 		throw new BadRequestException('Пользователь с таким email и паролем не найден')
 	}
 
@@ -26,13 +27,13 @@ export class AuthService{
 		const correct = await this.cryptoService.compareHash(promptPassword, pass, salt);
 		if(!correct){return this.throwWrongAuth()}
 		
-		const accessToken = this.jwtService.sign({sub: user.id, email: user.email, username: user.username});
+		const accessToken = this.jwtService.sign({id: user.id, email: user.email, username: user.username});
 		return {accessToken: accessToken}
 	}
 
-	async verify(token: string){
+	async verify(token: string): Promise<false | Payload>{
 		return this.jwtService.verifyAsync(token)
-		.then(() => true)
+		.then((data: Payload) => data)
 		.catch(() => false)
 	}
 
