@@ -1,10 +1,12 @@
-import { BadRequestException, ImATeapotException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { BadRequestException, ImATeapotException, Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { AddUserDto } from "./dto/addUser.dto";
 import { CryptoService } from "../crypto/crypto.service";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "../../db/entities/user.entity";
 import { Repository } from "typeorm";
 import { LoggerService } from "../logger/logger.service";
+import { UserPayload } from "../../guards/auth.guard";
+import { UpdateUserDto } from "./dto/updateUser.dto";
 
 @Injectable()
 export class UsersService{
@@ -43,8 +45,8 @@ export class UsersService{
 				throw new BadRequestException('Пользователь с таким email уже существует');
 			}
 			this.loggerService.logError(JSON.stringify(err))
-			return {status: false, message: 'Что-то пошло не так'}}
-		)
+			throw new BadRequestException('Что-то пошло не так');
+		})
 	}
 
 	async findByEmailOrLogin(identifier: string){
@@ -56,6 +58,37 @@ export class UsersService{
 
 	async findById(id: number){
 		return this.userRepository.find({where: {id}})
+	}
+
+	async getPrivateUser(id: number){
+		const res = await this.userRepository.findOne({where: {id}, select: ['id', 'email', 'username']});
+		if(res === null){throw new BadRequestException('User not found')}
+		return res
+	}
+
+	async getPublicUser(uid: string){
+		const id = parseInt(uid);
+		if(isNaN(id)){throw new BadRequestException('Invalid user id')}
+
+		const res = await this.userRepository.findOne({where: {id}, select: ['id', 'email', 'username']})
+		if(res === null){throw new BadRequestException('User not found')}
+		return res
+	}
+
+	async updateUser(uid: string, {id: verifiedId}: UserPayload, updateUserBody: UpdateUserDto){
+		const id = parseInt(uid);
+
+		if(isNaN(id)){throw new BadRequestException('Invalid user id')}
+		if(id !== verifiedId){throw new UnauthorizedException('Forbidden action')}
+
+		const res = await this.userRepository.update({id}, updateUserBody);
+		
+		if(res.affected && res.affected > 0){
+			return {status: true}
+		}
+		else{
+			throw new BadRequestException("Couldn't update user")
+		}
 	}
 
 }

@@ -1,6 +1,7 @@
 import * as fs from 'node:fs'
-import { Injectable } from "@nestjs/common";
+import { Global, Injectable } from "@nestjs/common";
 
+@Global()
 @Injectable()
 export class LoggerService{
 	async logError(str: string){

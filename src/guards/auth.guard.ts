@@ -1,12 +1,20 @@
-import { BadRequestException, CanActivate, ExecutionContext, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, CanActivate, ExecutionContext, forwardRef, Global, Inject, UnauthorizedException } from "@nestjs/common";
 import { Request } from "express";
-import { AuthService } from "../modules/auth/auth.service";
-import { UsersService } from "../modules/users/users.service";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
+
+export interface UserPayload{
+	id: number,
+	email: string,
+	username: string,
+	iat: number,
+	exp: number
+}
 
 export class AuthGuard implements CanActivate{
 	constructor(
-		private readonly authService: AuthService,
-		private readonly userService: UsersService
+		private readonly jwtService: JwtService,
+		@Inject(ConfigService) private readonly configService: ConfigService
 	){}
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const req = context.switchToHttp().getRequest() as Request;
@@ -21,12 +29,17 @@ export class AuthGuard implements CanActivate{
 			throw new UnauthorizedException('Invalid token format')
 		}
 
-		const allowed = await this.authService.verify(token);
+		const allowed = await this.jwtService.verifyAsync<UserPayload>(token, {secret: this.configService.getOrThrow('JWT_SECRET')})
+		.then((data) => {return data})
+		.catch(() => {
+			return null
+		})
 		if(!allowed){throw new UnauthorizedException('Invalid token')}
 		
-		const user = await this.userService.findById(allowed.id);
-		if(!user){throw new BadRequestException('Пользователь не найден')}
-		req.user = user
+		req['id'] = allowed.id;
+		req['username'] = allowed.username;
+		req['email'] = allowed.email;
+
 		return true
 	}
 }
