@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Post } from "./post.entity";
 
 @Entity('users')
 export class User{
@@ -24,7 +25,7 @@ export class User{
 	@CreateDateColumn()
 	createdAt: Date;
 
-	@ApiProperty({example: '2023-01-01T00:00:00.000Z', description: 'Дата обновления'})
+	@ApiProperty({example: '2023-01-01T00:00:00.000', description: 'Дата обновления'})
 	@UpdateDateColumn()
 	updatedAt: Date;
 
@@ -36,4 +37,6 @@ export class User{
 	@Column({type: 'varchar', length: 64})
 	hashSalt: string
 
+	@OneToMany(() => Post, post => post.author)
+	posts: Post[]
 }
