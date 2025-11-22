@@ -13,6 +13,7 @@ export class Post{
 	@Column({type: 'varchar', length: 48})
 	title: string;
 
+	@ApiProperty({example: 1, description: 'id категории', type: 'number'})
 	@Column({type: 'int'})
 	category: number;
 
@@ -24,7 +25,7 @@ export class Post{
 	@Column({type: 'varchar', length: 512})
 	content: string;
 
-	@Column({type: 'varchar', length: 128})
+	@Column({type: 'varchar', length: 128, nullable: true})
 	poster: string;
 
 	@ManyToOne(() => User, user => user.posts)
