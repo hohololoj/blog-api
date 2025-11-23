@@ -48,7 +48,7 @@ export class PostsService {
 
 		const res = await this.postsRepository.find({order: {id: 'DESC'}, skip: (page-1)*fill, take: fill})
 
-		if(res === null){throw new NotFoundException('Страница не найдена')}
+		if(res.length){throw new NotFoundException('Страница не найдена')}
 
 		return res;
 	}
@@ -56,7 +56,7 @@ export class PostsService {
 
 		const res = await this.postsRepository.find({order: {id: 'DESC'}, where: {id: LessThan(lastPid)}, take: fill})
 
-		if(res === null){throw new NotFoundException('Страница не найдена')}
+		if(res.length){throw new NotFoundException('Страница не найдена')}
 
 		return res
 	}
@@ -92,6 +92,17 @@ export class PostsService {
 		}
 
 		return this.getPostsWithSkip(page!, fill);
+	}
+
+	async getPost(pid: string){
+
+		const id = parseInt(pid);
+		if(isNaN(id)){throw new BadRequestException('id is invalid')}
+
+		const res = await this.postsRepository.findOne({where: {id}})
+		if(res === null){throw new NotFoundException('Пост не найден')}
+
+		return res;
 	}
 
 }
