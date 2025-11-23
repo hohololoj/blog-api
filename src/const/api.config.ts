@@ -1,0 +1,4 @@
+export const API_CONFIG = {
+	DEFAULT_PAGE_FILL: 12,
+	MAX_FILL: 32,
+}
