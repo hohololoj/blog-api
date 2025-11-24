@@ -3,10 +3,11 @@ import { ExtractUser } from "../../decorators/extractUser.decorator";
 import { AuthGuard, UserPayload } from "../../guards/auth.guard";
 import { AddPostDto } from "./dto/addPost.dto";
 import { PostsService } from './posts.service';
-import { Body, Controller, Get, Param, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { API_CONFIG } from "../../const/api.config";
 import { GET_POST_SCHEMA } from "../../const/schema.getPostsList";
+import { EditPostDto } from "./dto/editPost.dto";
 
 @ApiTags('posts')
 @Controller('posts')
@@ -67,4 +68,17 @@ export class PostsController {
 	updatePostImage(@ExtractUser() user: UserPayload, @Body() postData: AddPostDto, @UploadedFile() poster: Express.Multer.File) {
 		return this.postsService.createPost(user, postData, poster)
 	}
+
+	@ApiConsumes('multipart/form-data')
+	@ApiOperation({ summary: 'Обновить пост' })
+	@ApiResponse({ status: 404, description: 'Пост не найден / нет доступа к обновлению поста' })
+	@ApiResponse({ status: 400, description: 'Данные не прошли валидацию' })
+	@ApiResponse({ status: 200, description: 'Пост был обновлен' })
+	@Patch(':pid')
+	@UseGuards(AuthGuard)
+	@UseInterceptors(FileInterceptor('poster'))
+	updatePost(@Param('pid') pid: string, @ExtractUser() user: UserPayload, @Body() postData: EditPostDto, @UploadedFile() poster: Express.Multer.File | undefined){
+		return this.postsService.updatePost(user, pid, postData, poster)
+	}
+
 }
