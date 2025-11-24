@@ -7,7 +7,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { FSService } from "../fs/fs.service";
 import { API_CONFIG } from "../../const/api.config";
 import { EditPostDto } from "./dto/editPost.dto";
-import { User } from "../../db/entities/user.entity";
 
 @Injectable()
 export class PostsService {
@@ -139,6 +138,18 @@ export class PostsService {
 		if(oldPost.poster){this.fsService.undoSavingImage(oldPost.poster)}
 
 		return
+	}
+
+	async deletePost(user: UserPayload, pid: string){
+
+		const id = parseInt(pid);
+		if(isNaN(id)){throw new BadRequestException('invalid pid')}
+
+		const res = await this.postsRepository.delete({id: id, author: {id: user.id}})
+		if(!res.affected || res.affected < 1){throw new NotFoundException('post not found')}
+
+		return
+
 	}
 
 }

@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Post } from "./post.entity";
+import { Comment } from "./comment.entity";
 
 @Entity('users')
 export class User{
@@ -39,4 +40,7 @@ export class User{
 
 	@OneToMany(() => Post, post => post.author)
 	posts: Post[]
+
+	@OneToMany(() => Comment, comment => comment.author)
+	comments: Comment[]
 }
