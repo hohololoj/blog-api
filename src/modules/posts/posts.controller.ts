@@ -3,8 +3,8 @@ import { ExtractUser } from "../../decorators/extractUser.decorator";
 import { AuthGuard, UserPayload } from "../../guards/auth.guard";
 import { AddPostDto } from "./dto/addPost.dto";
 import { PostsService } from './posts.service';
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
-import { ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { API_CONFIG } from "../../const/api.config";
 import { GET_POST_SCHEMA } from "../../const/schema.getPostsList";
 import { EditPostDto } from "./dto/editPost.dto";
@@ -79,6 +79,16 @@ export class PostsController {
 	@UseInterceptors(FileInterceptor('poster'))
 	updatePost(@Param('pid') pid: string, @ExtractUser() user: UserPayload, @Body() postData: EditPostDto, @UploadedFile() poster: Express.Multer.File | undefined){
 		return this.postsService.updatePost(user, pid, postData, poster)
+	}
+
+	@ApiOperation({ summary: 'Удалить пост' })
+	@ApiResponse({ status: 404, description: 'Пост не найден / нет доступа к удалению поста' })
+	@ApiResponse({ status: 400, description: 'pid не валидный' })
+	@ApiResponse({ status: 200, description: 'Пост был удален' })
+	@UseGuards(AuthGuard)
+	@Delete(':pid')
+	deletePost(@Param('pid') pid: string, @ExtractUser() user: UserPayload){
+		return this.postsService.deletePost(user, pid)
 	}
 
 }

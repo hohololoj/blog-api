@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { User } from "./user.entity";
 import { ApiProperty } from "@nestjs/swagger";
+import { Comment } from "./comment.entity";
 
 @Entity('posts')
 export class Post{
@@ -31,6 +32,9 @@ export class Post{
 	@ManyToOne(() => User, user => user.posts)
 	author: User;
 	
+	@OneToMany(() => Comment, comment => comment.post)
+	comments: Comment[]
+
 	@ApiProperty({example: '2023-01-01T00:00:00.000', description: 'Дата создания поста', type: 'string'})
 	@CreateDateColumn()
 	createdAt: Date;
