@@ -6,10 +6,11 @@ import { PostsService } from './posts.service';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { API_CONFIG } from "../../const/api.config";
-import { GET_POST_SCHEMA } from "../../const/schema.getPostsList";
+import { GET_POST_SCHEMA } from "../../db/schemas/getPost.schema";
 import { EditPostDto } from "./dto/editPost.dto";
 import { AddCommentDto } from "../comments/dto/addComment.dto";
 import { CommentsService } from "../comments/comments.service";
+import { GET_COMMENT_SCHEMA } from "../../db/schemas/getComment.schema";
 
 @ApiTags('posts')
 @Controller('posts')
@@ -45,6 +46,19 @@ export class PostsController {
 	@Get(':pid')
 	getPost(@Param('pid') pid: string){
 		return this.postsService.getPost(pid);
+	}
+
+	@ApiOperation({ summary: 'Получить массив комментариев к посту' })
+	@ApiQuery({name: 'lastId', required: false, type: 'number', description: 'id последнего комментария для cursor поиска', example: 1})
+	@ApiResponse({ status: 400, description: 'Ошибка query-параметров / pid не корректный' })
+	@ApiResponse({ status: 404, description: 'Комментарии / пост не найден(ы)' })
+	@ApiResponse({ status: 200, description: 'Список комментариев', schema: {
+		type: 'array',
+		items: GET_COMMENT_SCHEMA
+	}})
+	@Get(':pid/comments')
+	getPostComments(@Param('pid') pid: string, @Query() query: {[key: string]: string | undefined}){
+		return this.commentsService.getComments(pid, query)
 	}
 
 	@ApiConsumes('multipart/form-data')
