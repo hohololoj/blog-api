@@ -6,6 +6,7 @@ import { DBModule } from "./db/db.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { CryptoModule } from "./modules/crypto/crypto.module";
 import { LoggerModule } from "./modules/logger/logger.module";
+import { CommentsModule } from "./modules/comments/comments.module";
 
 @Module({
 	imports: [
@@ -19,6 +20,7 @@ import { LoggerModule } from "./modules/logger/logger.module";
 		UsersModule,
 		PostsModule,
 		AuthModule,
+		CommentsModule,
 	]
 })
 export class AppModule{}

@@ -29,7 +29,7 @@ export class Post{
 	@Column({type: 'varchar', length: 128, nullable: true})
 	poster: string;
 
-	@ManyToOne(() => User, user => user.posts)
+	@ManyToOne(() => User, user => user.posts, {onDelete: 'CASCADE'})
 	author: User;
 	
 	@OneToMany(() => Comment, comment => comment.post)

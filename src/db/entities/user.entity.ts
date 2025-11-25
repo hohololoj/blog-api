@@ -34,7 +34,6 @@ export class User{
 	@Column({type: 'bool', default: true})
 	isActive: boolean;
 
-	@ApiProperty({example: '0x345f31112415125124', description: 'Соль для хеша пароля конкретного пользователя'})
 	@Column({type: 'varchar', length: 64})
 	hashSalt: string
 
