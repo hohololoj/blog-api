@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { UserPayload } from "../../guards/auth.guard";
 import { AddCommentDto } from "./dto/addComment.dto";
-import { Repository } from "typeorm";
+import { FindManyOptions, LessThan, Repository } from "typeorm";
 import { Comment } from "../../db/entities/comment.entity";
 import { InjectRepository } from "@nestjs/typeorm";
+import { API_CONFIG } from "../../const/api.config";
 
 @Injectable()
 export class CommentsService{
@@ -28,6 +29,41 @@ export class CommentsService{
 
 		return res;
 
+	}
+
+	async getComments(pid: string, query: {[key: string]: string | undefined}){
+
+		const postId = parseInt(pid);
+		if(isNaN(postId)){throw new BadRequestException('pid is not valid')}
+
+		const options: FindManyOptions = {
+			where: {post: {id: postId}},
+			take: API_CONFIG.NUM_COMMENTS,
+			relations: {author: true},
+			order: {id: 'DESC'},
+			select: {
+				id: true,
+				title: true,
+				content: true,
+				createdAt: true,
+				author:{
+					id: true,
+					username: true,
+				}
+			}
+		}
+
+		const lastId = parseInt(`${query.lastId}`);
+		if(!isNaN(lastId)){
+			options.where = {...options.where, id: LessThan(lastId)}
+		}
+
+		const res = await this.commentsRepository.find(options)
+
+		if(res.length === 0){throw new NotFoundException('No comments found')}
+
+		return res
+		
 	}
 
 }
