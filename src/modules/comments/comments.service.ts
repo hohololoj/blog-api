@@ -66,4 +66,17 @@ export class CommentsService{
 		
 	}
 
+	async deleteComment(cid: string, user: UserPayload){
+		
+		const id = parseInt(cid);
+		if(isNaN(id)){throw new BadRequestException('cid is not valid')}
+
+		const res = await this.commentsRepository.delete({id: id, author: {id: user.id}});
+
+		if(!res.affected || res.affected < 1){throw new NotFoundException('Comment not found')}
+
+		return
+
+	}
+
 }
