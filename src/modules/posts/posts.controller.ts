@@ -8,11 +8,16 @@ import { ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } f
 import { API_CONFIG } from "../../const/api.config";
 import { GET_POST_SCHEMA } from "../../const/schema.getPostsList";
 import { EditPostDto } from "./dto/editPost.dto";
+import { AddCommentDto } from "../comments/dto/addComment.dto";
+import { CommentsService } from "../comments/comments.service";
 
 @ApiTags('posts')
 @Controller('posts')
 export class PostsController {
-	constructor(private readonly postsService: PostsService) { }
+	constructor(
+		private readonly postsService: PostsService,
+		private readonly commentsService: CommentsService
+	) { }
 
 	@ApiOperation({ summary: 'Получить список постов' })
 	@ApiQuery({name: 'page', required: false, type: 'number', description: 'Номер страницы >0', example: 1})
@@ -89,6 +94,16 @@ export class PostsController {
 	@Delete(':pid')
 	deletePost(@Param('pid') pid: string, @ExtractUser() user: UserPayload){
 		return this.postsService.deletePost(user, pid)
+	}
+
+	@ApiOperation({ summary: 'Добавить коммент к посту' })
+	@ApiResponse({ status: 400, description: 'pid не валидный' })
+	@ApiResponse({ status: 500, description: 'не удалось создать запись комментария' })
+	@ApiResponse({ status: 200, description: 'Комментарий добавлен' })
+	@Post(':pid/comments')
+	@UseGuards(AuthGuard)
+	addComment(@Param('pid') pid: string, @ExtractUser() user: UserPayload, @Body() commentData: AddCommentDto){
+		return this.commentsService.addComment(pid, user, commentData)
 	}
 
 }

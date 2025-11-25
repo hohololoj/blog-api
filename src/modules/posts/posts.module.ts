@@ -5,9 +5,10 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { Post } from "../../db/entities/post.entity";
 import { JwtService } from "@nestjs/jwt";
 import { FSModule } from "../fs/fs.module";
+import { CommentsModule } from "../comments/comments.module";
 
 @Module({
-	imports: [TypeOrmModule.forFeature([Post]), FSModule],
+	imports: [TypeOrmModule.forFeature([Post]), FSModule, CommentsModule],
 	controllers: [PostsController],
 	providers: [PostsService, JwtService]
 })

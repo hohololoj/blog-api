@@ -18,12 +18,10 @@ export class Comment{
 	@Column({type: 'varchar', length: 256})
 	content: string;
 
-	@ManyToOne(() => User, user => user.comments)
+	@ManyToOne(() => User, user => user.comments, {onDelete: 'CASCADE'})
 	author: User
 
-	@ManyToOne(() => Post, post => post.comments, {
-		onDelete: 'CASCADE'
-	})
+	@ManyToOne(() => Post, post => post.comments, {onDelete: 'CASCADE'})
 	post: Post;
 
 	@CreateDateColumn()
