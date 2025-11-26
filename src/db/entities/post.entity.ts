@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGenerate
 import { User } from "./user.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { Comment } from "./comment.entity";
+import { Category } from "./category.entity";
 
 @Entity('posts')
 export class Post{
@@ -14,9 +15,10 @@ export class Post{
 	@Column({type: 'varchar', length: 48})
 	title: string;
 
-	@ApiProperty({example: 1, description: 'id категории', type: 'number'})
-	@Column({type: 'int'})
-	category: number;
+	@ManyToOne(() => Category, category => category.posts, {
+		onDelete: 'CASCADE'
+	})
+	category: Category;
 
 	@ApiProperty({example: 'Новое обновление API затронуло систему валидации', description: 'Краткое описание поста', type: 'string', maxLength: 96})
 	@Column({type: 'varchar', length: 96})
