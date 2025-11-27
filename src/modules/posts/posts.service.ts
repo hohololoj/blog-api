@@ -1,12 +1,13 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { UserPayload } from "../../guards/auth.guard";
 import { AddPostDto } from "./dto/addPost.dto";
-import { LessThan, Repository } from "typeorm";
+import { FindManyOptions, LessThan, Repository } from "typeorm";
 import { Post } from "../../db/entities/post.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { FSService } from "../fs/fs.service";
 import { API_CONFIG } from "../../const/api.config";
 import { EditPostDto } from "./dto/editPost.dto";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity.js";
 
 @Injectable()
 export class PostsService {
@@ -28,10 +29,13 @@ export class PostsService {
 
 		const posterPath = await this.savePoster(user.id, poster)
 
+		const {category, ...rest} = postData;
+
 		const newPost = this.postsRepository.create({
-			...postData,
+			...rest,
 			poster: posterPath,
-			author: { id: user.id }
+			author: { id: user.id },
+			category: {id: category}
 		})
 
 		const res = await this.postsRepository.save(newPost)
@@ -49,7 +53,7 @@ export class PostsService {
 
 		const res = await this.postsRepository.find({order: {id: 'DESC'}, skip: (page-1)*fill, take: fill})
 
-		if(res.length){throw new NotFoundException('Page not found')}
+		if(res.length === 0){throw new NotFoundException('Page not found')}
 
 		return res;
 	}
@@ -57,12 +61,34 @@ export class PostsService {
 
 		const res = await this.postsRepository.find({order: {id: 'DESC'}, where: {id: LessThan(lastPid)}, take: fill})
 
-		if(res.length){throw new NotFoundException('Page not found')}
+		if(res.length === 0){throw new NotFoundException('Page not found')}
 
 		return res
 	}
 	async getFirstPage(fill: number){
+		console.log(2);
 		return this.getPostsWithSkip(1, fill)
+	}
+	async getCategoryPosts(cid: string, query: {[key: string]: string}){
+
+		const id = parseInt(cid);
+		if(isNaN(id)){throw new BadRequestException('cid is not valid')}
+
+		const options: FindManyOptions = {
+			order: {id: 'DESC'},
+			where: {category: {id: id}},
+			take: API_CONFIG.DEFAULT_PAGE_FILL
+		}
+		if(query.lastId !== undefined){
+			const lastId_int = parseInt(query.lastId);
+			if(isNaN(lastId_int)){throw new BadRequestException("lastId is not valid")}
+			options.where = {...options.where, id: LessThan(lastId_int)}
+		}
+
+		const res = await this.postsRepository.find()
+
+		return res;
+
 	}
 
 	extractNumber(str: string | undefined): number{
@@ -122,11 +148,14 @@ export class PostsService {
 
 		if(!oldPost){throw new NotFoundException('Post not found')}
 		
-		const newPostData = {
-			id: id,
-			...filteredPostData
-		}
+		const {category, ...rest} = filteredPostData;
 		
+		const newPostData: QueryDeepPartialEntity<Post> = {
+			id: id,
+			...rest
+		}
+
+		if(category !== undefined){newPostData.category = {id: category}}
 		
 		const newPosterPath = await this.savePoster(user.id, poster);
 		if(newPosterPath){newPostData.poster = newPosterPath}
