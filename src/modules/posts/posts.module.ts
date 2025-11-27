@@ -10,6 +10,7 @@ import { CommentsModule } from "../comments/comments.module";
 @Module({
 	imports: [TypeOrmModule.forFeature([Post]), FSModule, CommentsModule],
 	controllers: [PostsController],
-	providers: [PostsService, JwtService]
+	providers: [PostsService, JwtService],
+	exports: [PostsService]
 })
 export class PostsModule{}

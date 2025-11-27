@@ -35,6 +35,7 @@ export class PostsController {
 	})
 	@Get('/list')
 	getPostsList(@Query() queryParams: { [key: string]: string | undefined }) {
+		console.log(1);
 		return this.postsService.getPostsList(queryParams)
 	}
 
